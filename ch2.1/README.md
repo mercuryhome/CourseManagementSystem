@@ -96,7 +96,7 @@
 
 3. **执行SQL脚本**
    ```bash
-   psql -d db_cms -f p2.1.sql
+   psql -U postgres -d db_cms -f p2.1.sql
    ```
 
 ### 验证安装
