@@ -39,8 +39,8 @@
     --  任务：进入psql, 创建两个数据库 db_cms_dev, db_temp;  删除 db_temp 
         -- psql -U postgres -h localhost -p 5432 -d postgres
             -- 创建测试数据库 db_cms_dev, db_temp
-                -- postgres=# create database db_dev;
-                -- postgres=# create database db_temp; 
+                create database db_cms_dev;
+                create database db_temp; 
             -- 查看创建结果, \l+  添加加号可以查看更多详情
                 -- postgres=# \l
                 -- postgres=# \l+
@@ -48,24 +48,24 @@
                 -- postgres=# \c db_cms_dev;
                 -- postgres=# \c db_temp;
             --  删除数据库 db_temp, 注意不能删除当前打开的数据库： ERROR:  cannot drop the currently open database
-                -- postgres=# drop database db_temp;  
+                drop database db_temp;  
             -- 退出psql
                 -- postgres=# \q
 
-    -- 任务： 进入psql，在 db_cms_dev 数据库下 创建j英文系模式 en, 中文系模式 cn, 临时模式 temp; 删除L模式 temp
+    -- 任务： 进入psql，在 db_cms_dev 数据库下 创建英文系模式 en, 中文系模式 cn, 临时模式 temp; 删除模式 temp
         -- psql -U postgres -h localhost -p 5432 -d db_cms_dev
             -- 查看连接信息
                -- db_cms_dev=# \c
-            -- 创建j英文系模式 en, 中文系模式 cn
-               -- db_cms_dev=# create schema en;
-               -- db_cms_dev=# create schema cn;
-               -- db_cms_dev=# create schema temp;
+            -- 创建英文系模式 en, 中文系模式 cn
+               create schema en;
+               create schema cn;
+               create schema temp;
             -- 查看模式schema列表 (==命名空间 namespace）
                -- db_cms_dev=# \dn
                -- db_cms_dev=# \dn+
                -- db_cms_dev=# \dn+ temp
             -- 删除模式 temp
-               -- db_cms_dev=# drop schema temp;
+               db_cms_dev=# drop schema temp;
 
     -- 任务： 授权当前用户(postgres) 可在模式 en, cn 下创建（CREATE）数据库对象  
         -- psql -U postgres -h localhost -p 5432 -d db_cms_dev
@@ -98,8 +98,8 @@
         -- # \c    查看连接信息确认当前所在的用户身份及数据库名称  
         -- # show search_path ， 查看模式搜索路径
 
-            -- 创建学生表
-            CREATE TABLE Student (
+            -- 创建学生表（注意：需要在en模式下创建）
+            CREATE TABLE en.Student (
                 Sno CHAR(8) PRIMARY KEY,
                 Sname VARCHAR(20) UNIQUE, 
                 Ssex CHAR(6),
@@ -110,25 +110,25 @@
         -- 表3.4 SQL 标准常⽤的数据类 型
 
             -- 创建课程表
-            CREATE TABLE Course (
+            CREATE TABLE en.Course (
                 Cno VARCHAR(5) PRIMARY KEY,
                 Cname VARCHAR(40) NOT NULL,
                 Ccredit SMALLINT NOT NULL CHECK (Ccredit > 0),
                 Cpno VARCHAR(5),
-                FOREIGN KEY (Cpno) REFERENCES Course(Cno)
+                FOREIGN KEY (Cpno) REFERENCES en.Course(Cno)
             );
 
             -- 创建选课表（学生-课程关系表）
-            CREATE TABLE SC (
-                Sno VARCHAR(8) NOT NULL,
+            CREATE TABLE en.SC (
+                Sno CHAR(8) NOT NULL,  -- 修改为CHAR(8)与Student表保持一致
                 Cno VARCHAR(5) NOT NULL,
                 Grade SMALLINT CHECK (Grade >= 0 AND Grade <= 100),
                 Semester VARCHAR(5) NOT NULL CHECK (Semester ~ '^[0-9]{4}[12]$'), -- 格式：YYYY1或YYYY2
                 Teachingclass VARCHAR(8),
                 -- 复合主键：确保同一学生在同一学期不能重复选同一门课
                 PRIMARY KEY (Sno, Cno, Semester),
-                FOREIGN KEY (Sno) REFERENCES Student(Sno),
-                FOREIGN KEY (Cno) REFERENCES Course(Cno),
+                FOREIGN KEY (Sno) REFERENCES en.Student(Sno),
+                FOREIGN KEY (Cno) REFERENCES en.Course(Cno),
                 -- 添加UNIQUE约束：同一学生在同一学期同一教学班只能选一门课
                 CONSTRAINT uk_sc_student_teachingclass UNIQUE (Sno, Teachingclass, Semester)
             );
@@ -137,7 +137,7 @@
         -- 任务：例3.71 (p108) 插入示例数据
 
             -- 插入学生数据
-            INSERT INTO Student (Sno, Sname, Ssex, Sbirthdate, Smajor) VALUES
+            INSERT INTO en.Student (Sno, Sname, Ssex, Sbirthdate, Smajor) VALUES
             ('20180001', '李勇', '男', '2000-03-08', '信息安全'),
             ('20180002', '刘晨', '女', '1999-09-01', '计算机科学与技术'),
             ('20180003', '王敏', '女', '2001-08-01', '信息管理与信息系统'),
@@ -147,7 +147,7 @@
             ('20180007', '王佳佳', '女', '2001-12-07', '信息管理与信息系统');
 
             -- 插入课程数据
-            INSERT INTO Course (Cno, Cname, Ccredit, Cpno) VALUES
+            INSERT INTO en.Course (Cno, Cname, Ccredit, Cpno) VALUES
             ('81001', '程序设计基础与C语言', 4, NULL),
             ('81002', '数据结构', 4, '81001'),
             ('81003', '数据库系统概论', 3, '81002'),
@@ -158,7 +158,7 @@
             ('81008', '大数据技术概论', 3, '81003');
 
             -- 插入选课数据
-            INSERT INTO SC (Sno, Cno, Grade, Semester, Teachingclass) VALUES
+            INSERT INTO en.SC (Sno, Cno, Grade, Semester, Teachingclass) VALUES
             ('20180001', '81001', 85, '20192', '81001-01'),
             ('20180001', '81002', 96, '20201', '81002-01'),
             ('20180001', '81003', 87, '20202', '81003-01'),
@@ -175,8 +175,76 @@
     -- 3.3.1 单表查询
         -- 任务： 3.16 实例
             -- 查询学生表所有列
-            select  * from student;
+            SELECT * FROM en.Student;
             -- 查询学生表学号和姓名
-            select sno, sname from student;
+            SELECT Sno, Sname FROM en.Student;
 
-        -- 实例3.16 ~ 3. 50 (p81 ~ p91)
+        -- 实例3.16 ~ 3.50 (p81 ~ p91)
+        
+        -- 3.3.2 更多单表查询示例
+            -- 条件查询
+            SELECT Sname, Smajor FROM en.Student WHERE Smajor = '计算机科学与技术';
+            
+            -- 模糊查询
+            SELECT * FROM en.Student WHERE Sname LIKE '李%';
+            
+            -- 范围查询
+            SELECT * FROM en.SC WHERE Grade BETWEEN 80 AND 90;
+            
+            -- 排序查询
+            SELECT Sname, Sbirthdate FROM en.Student ORDER BY Sbirthdate DESC;
+            
+            -- 分组查询
+            SELECT Smajor, COUNT(*) FROM en.Student GROUP BY Smajor;
+            
+            -- 空值查询
+            SELECT * FROM en.SC WHERE Grade IS NULL;
+
+    -- 3.5 数据更新操作
+        -- 更新数据
+        UPDATE en.Student SET Smajor = '数据科学与大数据技术' WHERE Sno = '20180003';
+        
+        -- 删除数据
+        DELETE FROM en.Student WHERE Sno = '20180007';
+
+    -- 3.6 表结构修改（ALTER TABLE）
+        -- 添加列
+        ALTER TABLE en.Student ADD COLUMN Sphone VARCHAR(15);
+        
+        -- 修改列类型
+        ALTER TABLE en.Student ALTER COLUMN Sname TYPE VARCHAR(30);
+        
+        -- 删除列
+        ALTER TABLE en.Student DROP COLUMN Sphone;
+
+    -- 3.7 视图操作
+        -- 创建视图
+        CREATE VIEW en.StudentView AS
+        SELECT Sno, Sname, Smajor FROM en.Student;
+        
+        -- 查询视图
+        SELECT * FROM en.StudentView WHERE Smajor = '计算机科学与技术';
+        
+        -- 删除视图
+        DROP VIEW en.StudentView;
+
+    -- 3.8 索引操作
+        -- 创建索引
+        CREATE INDEX idx_student_major ON en.Student(Smajor);
+        CREATE INDEX idx_sc_sno ON en.SC(Sno);
+        
+        -- 删除索引
+        DROP INDEX idx_student_major;
+
+    -- 3.9 数据控制语句
+        -- 创建用户
+        CREATE USER student_user WITH PASSWORD 'student123';
+        
+        -- 授权
+        GRANT SELECT ON en.Student TO student_user;
+        
+        -- 撤销权限
+        REVOKE SELECT ON en.Student FROM student_user;
+        
+        -- 删除用户
+        DROP USER student_user;
