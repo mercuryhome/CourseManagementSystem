@@ -21,7 +21,7 @@ echo $PATH
 echo 'export PATH="/usr/local/opt/postgresql@17/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 echo $PATH
-t 
+ 
 # psql登录数据库 
 psql -h localhost -d postgres
 

@@ -1,4 +1,4 @@
-# 高校 王珊《数据库系统概论》第6版 第3章 SQL实验指导书
+# 第3章 SQL实验指导
 
 ## 实验一：SQL环境配置与数据定义
 
@@ -21,6 +21,21 @@
 # 安装PostgreSQL
 brew install postgresql@17
 
+# 查看 PostgreSQL 的安装目录
+brew --prefix postgresql@17
+
+# 添加 PostgreSQL路径至PATH（适用于现代Mac系统）
+# 方法1：添加到 .zshrc（推荐，适用于macOS Catalina及以后版本）
+echo 'export PATH="$(brew --prefix postgresql@17)/bin:$PATH"' >> ~/.zshrc
+
+# 方法2：添加到 .bash_profile（适用于使用Bash的用户）
+echo 'export PATH="$(brew --prefix postgresql@17)/bin:$PATH"' >> ~/.bash_profile
+
+# 方法3：添加到 .profile（通用方法）
+echo 'export PATH="$(brew --prefix postgresql@17)/bin:$PATH"' >> ~/.profile
+
+echo "PostgreSQL PATH: $(which psql)"
+
 # 启动PostgreSQL服务
 brew services start postgresql@17
 
@@ -38,17 +53,54 @@ ps -ef | grep postgres
 brew install pstree
 lsof -i:5432 | grep LISTEN | awk '{print $2}' | xargs pstree -p
 
-# 连接到数据库（首次连接可能需要设置密码）
+# 连接到数据库（PostgreSQL 17安装后可能没有postgres用户）
+# 方法1：直接连接（如果系统自动创建了用户）
 psql -U postgres -h localhost -p 5432 -d postgres
 
+# 方法2：无用户连接（推荐，适用于新安装的PostgreSQL 17）
+psql -h localhost -d postgres
+
 # 如果连接失败，可能需要初始化数据库
+# 首先检查Mac架构
+uname -m
+
+# 根据架构选择正确的路径：
+# Intel Mac (x86_64) - 使用 /usr/local/var/
+initdb /usr/local/var/postgresql@17
+
+# Apple Silicon Mac (ARM64) - 使用 /opt/homebrew/var/
 initdb /opt/homebrew/var/postgresql@17
+
+# 或者使用Homebrew的默认路径（推荐）
+brew services list | grep postgresql
 ```
 
 **注意事项**：
-- 首次安装后，PostgreSQL会自动创建`postgres`超级用户
+- **重要**：PostgreSQL 17安装后可能没有默认的`postgres`用户，需要手动创建
 - 如果连接时提示需要密码，可以设置环境变量：`export PGPASSWORD=your_password`
 - 或者修改`pg_hba.conf`文件允许本地无密码连接
+- **Mac架构差异**：
+  - Intel Mac (x86_64)：Homebrew安装在`/usr/local/`
+  - Apple Silicon Mac (ARM64)：Homebrew安装在`/opt/homebrew/`
+  - 使用`uname -m`命令可以查看当前Mac的架构类型
+
+#### 创建postgres用户（如果不存在）
+```sql
+-- 1. 使用无用户方式连接数据库
+psql -h localhost -d postgres
+
+-- 2. 在psql环境中创建postgres角色
+CREATE ROLE postgres WITH LOGIN SUPERUSER PASSWORD 'your_password';
+
+-- 3. 验证用户创建成功
+\du
+
+-- 4. 退出psql
+\q
+
+-- 5. 使用新创建的postgres用户连接
+psql -U postgres -h localhost -p 5432 -d postgres
+```
 
 #### 步骤2：创建数据库和模式
 ```sql

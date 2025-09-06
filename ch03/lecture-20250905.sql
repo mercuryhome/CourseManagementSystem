@@ -34,6 +34,11 @@
            -- psql -U postgres -h localhost -p 5432 -d db_cms
            -- psql postgresql://postgres:***@localhost:5432/db_cms
                -- 数据库连接串格式：postgresql://username:password@host:port/database
+        
+        -- 注意：PostgreSQL 17安装后可能没有默认的postgres用户，需要手动创建
+        -- 1. 无用户连接：psql -h localhost -d postgres
+        -- 2. 创建用户：CREATE ROLE postgres WITH LOGIN SUPERUSER PASSWORD 'your_password';
+        -- 3. 验证用户：\du
 
 -- 3.2.0 数据库， 模式的定义和删除； 设置模式搜索路径
     --  任务：进入psql, 创建两个数据库 db_cms_dev, db_temp;  删除 db_temp 
@@ -248,3 +253,5 @@
         
         -- 删除用户
         DROP USER student_user;
+
+-- 补充资料 第3章 SQL实验指导：ch03/ch03-sql-lab.md
