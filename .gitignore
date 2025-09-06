@@ -3,3 +3,6 @@
 .idea
 .git
 .DS_Store
+.cursorrules
+.cursor
+.*.dsYM
