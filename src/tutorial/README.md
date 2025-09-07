@@ -8,6 +8,22 @@ In the examples that follow, we assume that you have created a database named my
 
 Examples in this manual can also be found in the PostgreSQL source distribution in the directory `src/tutorial/`. (Binary distributions of PostgreSQL might not provide those files.) To use those files, first change to that directory and run make:
 
+```bash
+# 获取最新的代码库文件
+$ cd ~/workspace/database/CourseManagementSystem/
+$ git pull
+$ cd /workspace/database/CourseManagementSystem/src/tutorial
+$ ls -l    # 可以看到以下文件
+basics.sql	weather.txt
+
+# 创建数据库
+$ createdb mydb
+$ psql -d mydb < basics.sql 
+
+# 可以看到 basics.sql 语句的输出结果. 
+# 打开basics.sql 文件查看sql语句，了解这些语句做了什么？
+```
+
 ## 2.2. Concepts
 
 PostgreSQL is a relational database management system (RDBMS). That means it is a system for managing data stored in relations. Relation is essentially a mathematical term for table. The notion of storing data in tables is so commonplace today that it might seem inherently obvious, but there are a number of other ways of organizing databases. Files and directories on Unix-like operating systems form an example of a hierarchical database. A more modern development is the object-oriented database.
@@ -20,6 +36,18 @@ Tables are grouped into databases, and a collection of databases managed by a si
 
 You can create a new table by specifying the table name, along with all column names and their types:
 
+```bash
+$ psql -d mydb
+
+  mydb=# CREATE TABLE weather (
+    city varchar(80),
+    temp_lo int, -- low temperature
+    temp_hi int, -- high temperature
+    prcp real, -- precipitation
+    date date
+  );
+```
+
 You can enter this into psql with the line breaks. psql will recognize that the command is not terminated until the semicolon.
 
 White space (i.e., spaces, tabs, and newlines) can be used freely in SQL commands. That means you can type the command aligned differently than above, or even all on one line. Two dashes ("--") introduce comments. Whatever follows them is ignored up to the end of the line. SQL is case-insensitive about key words and identifiers, except when identifiers are double-quoted to preserve the case (not done above).
@@ -30,13 +58,30 @@ PostgreSQL supports the standard SQL types `int`, `smallint`, `real`, `double pr
 
 The second example will store cities and their associated geographical location:
 
+```bash
+mydb=# CREATE TABLE cities (
+  name varchar(80),
+  location point
+);
+```
+
 The `point` type is an example of a PostgreSQL-specific data type.
 
-Finally, it should be mentioned that if you don't need a table any longer or want to recreate it differently you can remove it using the following command:
+Finally, it should be mentioned that if you don't need a table any longer or want to recreate it differently 
+
+you can remove it using the following command:
+
+```bash
+mydb=# DROP TABLE tablename;
+```
 
 ## 2.4. Populating a Table With Rows
 
 The INSERT statement is used to populate a table with rows:
+
+```bash
+mydb=# INSERT INTO weather VALUES ('San Francisco', 46, 50, 0.25, '1994-11-27');
+```
 
 Note that all data types use rather obvious input formats. Constants that are not simple numeric values usually must be surrounded by single quotes ('), as in the example. The date type is actually quite flexible in what it accepts, but for this tutorial we will stick to the unambiguous format shown here.
 
@@ -44,7 +89,16 @@ The point type requires a coordinate pair as input, as shown here:
 
 The syntax used so far requires you to remember the order of the columns. An alternative syntax allows you to list the columns explicitly:
 
+```bash
+mydb=# INSERT INTO cities VALUES ('San Francisco', '(-194.0, 53.0)');
+```
+
 You can list the columns in a different order if you wish or even omit some columns, e.g., if the precipitation is unknown:
+
+'''bash
+mydb=# INSERT INTO weather (date, city, temp_hi, temp_lo)
+VALUES ('1994-11-29', 'Hayward', 54, 37);
+'''
 
 Many developers consider explicitly listing the columns better style than relying on the order implicitly.
 
