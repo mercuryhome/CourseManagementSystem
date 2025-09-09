@@ -45,7 +45,7 @@
         -- psql -U postgres -h localhost -p 5432 -d postgres
             -- 创建测试数据库 db_cms_dev, db_temp
                 create database db_cms_dev;
-                create database db_temp; 
+                -- create database db_temp; 
             -- 查看创建结果, \l+  添加加号可以查看更多详情
                 -- postgres=# \l
                 -- postgres=# \l+
@@ -53,7 +53,7 @@
                 -- postgres=# \c db_cms_dev;
                 -- postgres=# \c db_temp;
             --  删除数据库 db_temp, 注意不能删除当前打开的数据库： ERROR:  cannot drop the currently open database
-                drop database db_temp;  
+                -- drop database db_temp;  
             -- 退出psql
                 -- postgres=# \q
 
@@ -64,22 +64,22 @@
             -- 创建英文系模式 en, 中文系模式 cn
                create schema en;
                create schema cn;
-               create schema temp;
+               -- create schema temp;
             -- 查看模式schema列表 (==命名空间 namespace）
                -- db_cms_dev=# \dn
                -- db_cms_dev=# \dn+
                -- db_cms_dev=# \dn+ temp
             -- 删除模式 temp
-               db_cms_dev=# drop schema temp;
+               -- db_cms_dev=# drop schema temp;
 
     -- 任务： 授权当前用户(postgres) 可在模式 en, cn 下创建（CREATE）数据库对象  
         -- psql -U postgres -h localhost -p 5432 -d db_cms_dev
             -- 查看当前用户是否获得授权
-                SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('en', 'cn');
+                -- SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('en', 'cn');
             -- 授权当前用户(postgres) 可在模式 en, cn 下创建（CREATE）数据库对象  
                 GRANT CREATE ON SCHEMA en,cn TO current_user;
             -- 查看当前用户是否获得授权
-                SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('en', 'cn');
+                -- SELECT schema_name FROM information_schema.schemata WHERE schema_name IN ('en', 'cn');
 
     -- 任务： 设置模式搜索路径 - 两种方法（临时，永久）
         -- psql -U postgres -h localhost -p 5432 -d db_cms_dev
@@ -89,8 +89,8 @@
                -- db_cms_dev=# set search_path to cn,en,public;
                -- db_cms_dev=# show search_path;
             -- 修改用户/角色 的搜索路径至 en, cn, public
-               -- db_cms_dev=# alter role current_user set search_path to en,en,public;
-               -- db_cms_dev=# show search_path;    # 注意观察 修改是否生效？
+               alter role current_user set search_path to en,en,public;
+               -- show search_path;    # 注意观察 修改是否生效？
             -- 退出 \q, 重新进入 , 查看搜索路径设置是否生效
                -- db_cms_dev=# show search_path;    # 注意观察 修改是否生效
 
