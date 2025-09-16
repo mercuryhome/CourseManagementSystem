@@ -31,17 +31,19 @@
    - 删除了 `include $(top_builddir)/src/Makefile.global`
    - 移除了对 PostgreSQL 项目构建系统的依赖
 
-2. **配置 Postgres.app 路径**：
+2. **使用 pg_config 自动配置**：
    ```makefile
-   PG_INCLUDE = /Applications/Postgres.app/Contents/Versions/17/include
-   PG_LIB = /Applications/Postgres.app/Contents/Versions/17/lib
+   PG_CONFIG = pg_config
+   PG_CFLAGS = $(shell $(PG_CONFIG) --cflags) -I$(shell $(PG_CONFIG) --includedir)
+   PG_LDFLAGS = $(shell $(PG_CONFIG) --ldflags) -L$(shell $(PG_CONFIG) --libdir)
+   PG_LIBS = -lpq $(shell $(PG_CONFIG) --libs)
    ```
 
-3. **简化编译配置**：
+3. **优化编译配置**：
    - 使用标准 gcc 编译器
-   - 设置编译标志：`-Wall -g -O2 -Wno-unused-but-set-variable -Wno-unused-function`
-   - 配置头文件路径：`-I$(PG_INCLUDE)`
-   - 配置库文件路径：`-L$(PG_LIB) -lpq`
+   - 自动获取 PostgreSQL 编译标志和路径
+   - 设置编译标志：`$(PG_CFLAGS) -g -O2 -Wno-unused-but-set-variable -Wno-unused-function`
+   - 自动配置链接标志：`$(PG_LDFLAGS) $(PG_LIBS)`
    - 关闭未使用变量和函数的警告
 
 4. **添加通用构建规则**：
@@ -107,3 +109,13 @@ make clean
 - testlo64
 
 所有程序都链接到 Postgres.app 提供的 libpq 库，可以在当前目录下独立编译和运行。
+
+## 优化优势
+
+使用 `pg_config` 工具的优势：
+
+1. **自动适配**：自动获取当前 PostgreSQL 安装的编译标志和路径
+2. **跨平台兼容**：在不同系统上都能正确找到 PostgreSQL 库
+3. **版本无关**：无需硬编码版本号，自动适配不同版本的 PostgreSQL
+4. **完整依赖**：自动包含所有必要的库依赖（如 SSL、XML、压缩库等）
+5. **标准做法**：这是 PostgreSQL 官方推荐的构建方式

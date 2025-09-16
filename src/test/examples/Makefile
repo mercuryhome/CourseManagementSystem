@@ -2,15 +2,17 @@
 # Makefile for example programs
 #
 
-# PostgreSQL paths for Postgres.app installation
-PG_INCLUDE = /Applications/Postgres.app/Contents/Versions/17/include
-PG_LIB = /Applications/Postgres.app/Contents/Versions/17/lib
+# PostgreSQL configuration using pg_config
+PG_CONFIG = pg_config
+PG_CFLAGS = $(shell $(PG_CONFIG) --cflags) -I$(shell $(PG_CONFIG) --includedir)
+PG_LDFLAGS = $(shell $(PG_CONFIG) --ldflags) -L$(shell $(PG_CONFIG) --libdir)
+PG_LIBS = -lpq $(shell $(PG_CONFIG) --libs)
 
 # Compiler flags
 CC = gcc
-CFLAGS = -Wall -g -O2 -Wno-unused-but-set-variable -Wno-unused-function
-CPPFLAGS = -I$(PG_INCLUDE)
-LDFLAGS = -L$(PG_LIB) -lpq
+CFLAGS = $(PG_CFLAGS) -g -O2 -Wno-unused-but-set-variable -Wno-unused-function
+CPPFLAGS = 
+LDFLAGS = $(PG_LDFLAGS) $(PG_LIBS)
 
 # Programs to build
 PROGS = testlibpq testlibpq2 testlibpq3 testlibpq4 testlo testlo64
